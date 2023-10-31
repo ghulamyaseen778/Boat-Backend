@@ -6,7 +6,7 @@ const connectDB=()=>{
     console.log(`Server Connected ${conn.connection.host}`.cyan.bold)
 })
 .catch((error)=>{
-    console.log(`Server Not Connected ${conn.connection.host}`.red.underline.bold)
+    console.log(`Server Not Connected`.red.underline.bold)
 })
 }
 
