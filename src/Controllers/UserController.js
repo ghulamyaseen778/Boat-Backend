@@ -2,8 +2,8 @@ import jsonwebtoken from "jsonwebtoken";
 import User, { Otp } from "../Models/UserSchema.js";
 import { errHandler, responseHandler } from "../helper/response.js";
 import nodemailer from "nodemailer";
-import dotenv from "dotenv"
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendMail = (to, data,id) => {
+const sendMail = (to, data, id) => {
   let html = `<body style="font-family: Helvetica, Arial, sans-serif; margin: 0px; padding: 0px; background-color: #ffffff;">
 <table role="presentation"
   style="width: 100%; border-collapse: collapse; border: 0px; border-spacing: 0px; font-family: Arial, Helvetica, sans-serif; background-color: rgb(239, 239, 239);">
@@ -55,14 +55,14 @@ const sendMail = (to, data,id) => {
     from: "yaseendws@gmail.com",
     to: to,
     subject: "These was recived by Boat App || Please verify your self",
-    html:html
+    html: html,
   };
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log("Error occurred:", error.message);
     } else {
-      console.log(info)
-      Otp.create({userId:id,otp:data.otp})
+      console.log(info);
+      Otp.create({ userId: id, otp: data.otp });
     }
   });
 };
@@ -104,14 +104,31 @@ const RegisterdUser = async (req, res) => {
     profilePhoto: profilePhoto + profileName,
   })
     .then((data) => {
-      let { name, email, profilePhoto, phoneNumber, _id, createdAt, role,verified } =
-        data;
+      let {
+        name,
+        email,
+        profilePhoto,
+        phoneNumber,
+        _id,
+        createdAt,
+        role,
+        verified,
+      } = data;
       let token = jsonwebtoken.sign(
-        { name, email, profilePhoto, _id, createdAt, role, phoneNumber,verified },
+        {
+          name,
+          email,
+          profilePhoto,
+          _id,
+          createdAt,
+          role,
+          phoneNumber,
+          verified,
+        },
         process.env.SECRET_KEY
       );
       const otp = Math.floor(1000 + Math.random() * 9000);
-      sendMail(email,{name,otp},_id)
+      sendMail(email, { name, otp }, _id);
       responseHandler(res, {
         name,
         email,
@@ -121,9 +138,8 @@ const RegisterdUser = async (req, res) => {
         token,
         phoneNumber,
         role,
-        verified
+        verified,
       });
-      
     })
     .catch((err) => {
       errHandler(res, 5, 409);
@@ -139,10 +155,27 @@ const LoginUser = (req, res) => {
   }
   User.findOne({ email })
     .then((data) => {
-      let { name, email, profilePhoto, phoneNumber, _id, createdAt, role,verified } =
-        data;
+      let {
+        name,
+        email,
+        profilePhoto,
+        phoneNumber,
+        _id,
+        createdAt,
+        role,
+        verified,
+      } = data;
       let token = jsonwebtoken.sign(
-        { name, email, profilePhoto, phoneNumber, _id, createdAt, role,verified },
+        {
+          name,
+          email,
+          profilePhoto,
+          phoneNumber,
+          _id,
+          createdAt,
+          role,
+          verified,
+        },
         process.env.SECRET_KEY
       );
       responseHandler(res, {
@@ -154,7 +187,7 @@ const LoginUser = (req, res) => {
         token,
         phoneNumber,
         role,
-        verified
+        verified,
       });
     })
     .catch((err) => {
@@ -171,27 +204,185 @@ const MakeVendor = (req, res) => {
       errHandler(res, 5, 409);
     });
 };
-const VerifyOtp = (req, res) => {
-  const user = req.user;
-  const {otp} = req.body
-  console.log(otp)
-  Otp.find({userId:user._id}).then((data)=>{
-    console.log(data)
-    if (otp == data[0].otp) {
-      User.findByIdAndUpdate({ _id: user._id }, { verified: true }, { new: true })
+
+const ForgotPassword = async (req, res) => {
+  const { email } = req.body;
+  console.log(email);
+  if (!email) {
+    errHandler(res, "Account Was Not Found", 403);
+    return;
+  }
+
+  User.findOne({ email }).then((userData) => {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    sendMail(email, { name: userData.name, otp }, userData._id);
+    User.findByIdAndUpdate(
+      { _id: userData._id },
+      { verified: false },
+      { new: true }
+    )
       .then((data) => {
-        responseHandler(res, data);
+        let {
+          name,
+          email,
+          profilePhoto,
+          phoneNumber,
+          _id,
+          createdAt,
+          role,
+          verified,
+        } = data;
+        let token = jsonwebtoken.sign(
+          {
+            name,
+            email,
+            profilePhoto,
+            _id,
+            createdAt,
+            role,
+            phoneNumber,
+            verified,
+          },
+          process.env.SECRET_KEY
+        );
+        responseHandler(res, {
+          name,
+          email,
+          profilePhoto,
+          phoneNumber,
+          _id,
+          createdAt,
+          role,
+          verified,
+          token,
+        });
       })
       .catch((err) => {
         errHandler(res, 5, 409);
       });
-    }else{
-      errHandler(res, "Invalid Otp", 409);
-    }
-  }).catch(()=>{
-    errHandler(res, 5, 409);
-  })
-
+  });
+};
+const NewPassword = async (req, res) => {
+  const { password } = req.body;
+  const user = req.user;
+  console.log(password);
+  if (!password) {
+    errHandler(res, "Password Has Not Changed", 403);
+    return;
+  }
+  if (password?.trim().length < 8) {
+    errHandler(res, 2, 403);
+    return;
+  }
+  User.findByIdAndUpdate(
+    { _id: user._id },
+    {password},
+    { new: true }
+  ).then((data) => {
+    let {
+      name,
+      email,
+      profilePhoto,
+      phoneNumber,
+      _id,
+      createdAt,
+      role,
+      verified,
+    } = data;
+    let token = jsonwebtoken.sign(
+      {
+        name,
+        email,
+        profilePhoto,
+        _id,
+        createdAt,
+        role,
+        phoneNumber,
+        verified,
+      },
+      process.env.SECRET_KEY
+    );
+    responseHandler(res, {
+      name,
+      email,
+      profilePhoto,
+      phoneNumber,
+      _id,
+      createdAt,
+      role,
+      verified,
+      token,
+    });
+  });
 };
 
-export { RegisterdUser, LoginUser, MakeVendor,VerifyOtp };
+const VerifyOtp = (req, res) => {
+  const user = req.user;
+  const { otp } = req.body;
+  console.log(otp);
+
+  Otp.find({ userId: user._id })
+    .then((dataotp) => {
+      console.log(dataotp);
+      if (otp == dataotp[0].otp) {
+        User.findByIdAndUpdate(
+          { _id: user._id },
+          { verified: true },
+          { new: true }
+        )
+          .then((data) => {
+            let {
+              name,
+              email,
+              profilePhoto,
+              phoneNumber,
+              _id,
+              createdAt,
+              role,
+              verified,
+            } = data;
+            let token = jsonwebtoken.sign(
+              {
+                name,
+                email,
+                profilePhoto,
+                _id,
+                createdAt,
+                role,
+                phoneNumber,
+                verified,
+              },
+              process.env.SECRET_KEY
+            );
+            responseHandler(res, {
+              name,
+              email,
+              profilePhoto,
+              phoneNumber,
+              _id,
+              createdAt,
+              role,
+              verified,
+              token,
+            });
+            Otp.findByIdAndDelete(dataotp[0]._id)
+              .then((datao) => {
+                console.log(datao);
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          })
+          .catch((err) => {
+            errHandler(res, 5, 409);
+          });
+      } else {
+        errHandler(res, "Invalid Otp", 409);
+      }
+    })
+    .catch(() => {
+      errHandler(res, 5, 409);
+    });
+};
+
+export { RegisterdUser, LoginUser, MakeVendor, VerifyOtp, ForgotPassword,NewPassword };
