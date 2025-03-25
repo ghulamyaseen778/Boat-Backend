@@ -8,11 +8,7 @@ import {
   VerifyOtp,
 } from "../Controllers/UserController.js";
 import { checkToken } from "../Middleware/index.js";
-import {
-  CreateBoat,
-  UpdateBoat,
-  getAllBoats,
-} from "../Controllers/BoatController.js";
+import { CreateNewJob, GetNewJob, UpdateNewJob } from "../Controllers/CreateJobController.js";
 
 const route = express.Router();
 
@@ -25,10 +21,7 @@ route.route("/verify").post(checkToken, VerifyOtp);
 route.route("/forgot").post(ForgotPassword);
 route.route("/newpassword").post(checkToken,NewPassword);
 
-//BoatsRoutes--------------------------------
+route.route("/createnewjob").post(CreateNewJob).get(GetNewJob).put(UpdateNewJob)
 
-route.route("/boat").get(getAllBoats);
-route.route("/createboat").post(checkToken, CreateBoat);
-route.route("/updateboat").post(checkToken, UpdateBoat);
 
 export default route;

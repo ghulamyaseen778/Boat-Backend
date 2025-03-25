@@ -22,35 +22,58 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    country:{
+      type:[String],
+      enum:["all","uae"]
+    },
     role: {
       type: String,
       default: "user",
-      enum:["vendor","user"]
+      enum: [
+        "gcc_head",
+        "country_head",
+        "regional_manager",
+        "operation_manager",
+        "brand_manager",
+        "area_manager",
+        "gcc_head_project",
+        "country_head_project",
+        "project_manager",
+        "project_engineer",
+        "site_engineer",
+        "drafts_man",
+        "facility_manager",
+        "regional_manager_project",
+        "project_engineer",
+        "site_engineer"
+      ],
     },
-    verified:{
-      type:Boolean,
-      default:false
-    }
+    head_id:{
+      type:String,
+      default:""
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const otpSchema = mongoose.Schema(
-  {
-    userId:{
-      type:String,
-      required:true
-    },
-    otp:{
-      type:String,
-      required:true
-    }
-  }
-)
+const otpSchema = mongoose.Schema({
+  userId: {
+    type: String,
+    required: true,
+  },
+  otp: {
+    type: String,
+    required: true,
+  },
+});
 
 const User = mongoose.model("User", UserSchema);
 const Otp = mongoose.model("otp", otpSchema);
 export default User;
-export {Otp}
+export { Otp };

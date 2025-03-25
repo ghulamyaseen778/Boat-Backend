@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: "yaseendws@gmail.com",
+    user: process.env.SERVICE,
     pass: process.env.PASS,
   },
 });
@@ -29,13 +29,13 @@ const sendMail = (to, data, id) => {
                 <div style="text-align: left;">
                   <div style="padding-bottom: 20px;"><div style="border-bottom:1px solid #eee">
                   <a href="" style="font-size:1.4em;color: 
-                  rgba(252, 36, 105, 1);text-decoration:none;font-weight:600">Boat App</a>
+                  rgba(252, 36, 105, 1);text-decoration:none;font-weight:600">Apperal App</a>
                 </div></div>
                 </div>
                 <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                   <div style="color: rgb(0, 0, 0); text-align: left;">
                     <h1 style="margin: 1rem 0">Verification code</h1>
-                    <p style="padding-bottom: 16px">${data.name} Thank you for choosing Boat App. Use the following OTP to complete your Registration procedures</p>
+                    <p style="padding-bottom: 16px">${data.name} Thank you for choosing Apperal App. Use the following OTP to complete your Registration procedures</p>
                     <h2 style="background: rgba(252, 36, 105, 0.6);margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">BA-${data.otp}</h2>
                     <p style="padding-bottom: 16px">If you didn’t request this, you can ignore this email.</p>
                     <p style="padding-bottom: 16px">Thanks,<br>The Boat App team</p>
@@ -52,9 +52,9 @@ const sendMail = (to, data, id) => {
 </table>
 </body>`;
   const mailOptions = {
-    from: "yaseendws@gmail.com",
+    from: process.env.SERVICE,
     to: to,
-    subject: "These was recived by Boat App || Please verify your self",
+    subject: "These was recived by Apperal App || Please verify your self",
     html: html,
   };
   transporter.sendMail(mailOptions, (error, info) => {
